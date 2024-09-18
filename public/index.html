@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPTV Client</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .player {
+            flex: 3;
+            background-color: black;
+        }
+        .channel-list {
+            flex: 1;
+            background-color: #f4f4f4;
+            overflow-y: scroll;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            background-color: black;
+        }
+        .channel {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .channel:hover {
+            background-color: #e0e0e0;
+        }
+        .channel img {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+        .category {
+            font-weight: bold;
+            padding: 10px;
+            background-color: #ccc;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="player">
+            <video id="videoPlayer" controls autoplay></video>
+        </div>
+        <div class="channel-list" id="channelList"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const videoPlayer = document.getElementById('videoPlayer');
+            const channelList = document.getElementById('channelList');
+            let hls;
+
+            // サーバーからチャンネルデータを取得
+            fetch('/channels')
+                .then(response => response.json())
+                .then(data => {
+                    let currentCategory = '';
+                    data.forEach(channel => {
+                        // カテゴリが変更された場合、見出しを追加
+                        if (channel["group-title"] !== currentCategory) {
+                            currentCategory = channel["group-title"];
+                            const categoryDiv = document.createElement('div');
+                            categoryDiv.classList.add('category');
+                            categoryDiv.innerText = currentCategory;
+                            channelList.appendChild(categoryDiv);
+                        }
+
+                        const channelDiv = document.createElement('div');
+                        channelDiv.classList.add('channel');
+                        
+                        // ロゴとチャンネル名の表示
+                        const logoImg = document.createElement('img');
+                        logoImg.src = channel["tvg-logo"];
+                        const channelName = document.createElement('span');
+                        channelName.innerText = channel.title;
+
+                        channelDiv.appendChild(logoImg);
+                        channelDiv.appendChild(channelName);
+
+                        channelDiv.addEventListener('click', () => {
+                            if (hls) {
+                                hls.destroy();
+                            }
+                            const videoSrc = channel.url;
+
+                            // HLS.js を使用して m3u8 ストリームを再生
+                            if (Hls.isSupported()) {
+                                hls = new Hls();
+                                hls.loadSource(videoSrc);
+                                hls.attachMedia(videoPlayer);
+                                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                                    videoPlayer.play();
+                                });
+                            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                                // ネイティブに HLS をサポートしている場合
+                                videoPlayer.src = videoSrc;
+                                videoPlayer.play();
+                            }
+                        });
+
+                        channelList.appendChild(channelDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching channel data:', error);
+                });
+        });
+    </script>
+</body>
+</html>
