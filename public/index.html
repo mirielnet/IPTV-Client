@@ -116,7 +116,6 @@
     <div class="container">
         <div class="player">
             <video id="videoPlayer" controls autoplay></video>
-            <div class="status-message" id="statusMessage"></div>
             <div class="channel-info" id="channelInfo"></div>
         </div>
         <div class="channel-list" id="channelList"></div>
@@ -126,7 +125,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             const videoPlayer = document.getElementById('videoPlayer');
             const channelList = document.getElementById('channelList');
-            const statusMessage = document.getElementById('statusMessage');
             const channelInfo = document.getElementById('channelInfo');
             let hls;
             let checkTimeout;  // 映像チェックのタイマー
@@ -249,9 +247,6 @@
             // 映像が再生されている間はチェック
             videoPlayer.addEventListener('playing', function() {
                 isChannelLive = true;
-                setTimeout(function() {
-                    statusMessage.style.display = 'none';
-                }, 500); // 再生が始まってから0.5秒後にメッセージを消す
             });
         });
     </script>
