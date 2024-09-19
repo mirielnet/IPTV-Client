@@ -15,6 +15,7 @@
         }
         .player {
             flex: 3;
+            position: relative;
             background-color: black;
         }
         .channel-list {
@@ -46,6 +47,26 @@
             font-weight: bold;
             padding: 10px;
             background-color: #ccc;
+        }
+        .status-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+        }
+        .channel-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            display: none;
         }
 
         /* スマホ用のレイアウト調整 */
@@ -94,6 +115,8 @@
     <div class="container">
         <div class="player">
             <video id="videoPlayer" controls autoplay></video>
+            <div class="status-message" id="statusMessage">チャンネルを選択してください。</div>
+            <div class="channel-info" id="channelInfo"></div>
         </div>
         <div class="channel-list" id="channelList"></div>
     </div>
@@ -102,6 +125,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             const videoPlayer = document.getElementById('videoPlayer');
             const channelList = document.getElementById('channelList');
+            const statusMessage = document.getElementById('statusMessage');
+            const channelInfo = document.getElementById('channelInfo');
             let hls;
 
             // サーバーからチャンネルデータを取得
@@ -126,7 +151,7 @@
                         const logoImg = document.createElement('img');
                         logoImg.src = channel["tvg-logo"];
                         const channelName = document.createElement('span');
-                        channelName.innerText = channel.title;
+                        channelName.innerText = channel["channel-number"] ? `[Ch.${channel["channel-number"]}] ${channel.title}` : channel.title;
 
                         channelDiv.appendChild(logoImg);
                         channelDiv.appendChild(channelName);
@@ -136,6 +161,11 @@
                                 hls.destroy();
                             }
                             const videoSrc = channel.url;
+                            const channelNumber = channel["channel-number"];
+                            const channelTitle = channel.title;
+
+                            // チャンネル情報の表示
+                            showChannelInfo(channelNumber, channelTitle);
 
                             // HLS.js を使用して m3u8 ストリームを再生
                             if (Hls.isSupported()) {
@@ -144,11 +174,21 @@
                                 hls.attachMedia(videoPlayer);
                                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                                     videoPlayer.play();
+                                    statusMessage.style.display = 'none';
+                                });
+
+                                hls.on(Hls.Events.ERROR, function(event, data) {
+                                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR || data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                                        showErrorMessage(channelNumber);
+                                    }
                                 });
                             } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
                                 // ネイティブに HLS をサポートしている場合
                                 videoPlayer.src = videoSrc;
                                 videoPlayer.play();
+                                videoPlayer.onerror = function() {
+                                    showErrorMessage(channelNumber);
+                                };
                             }
                         });
 
@@ -158,6 +198,25 @@
                 .catch(error => {
                     console.error('Error fetching channel data:', error);
                 });
+
+            // チャンネル情報を表示
+            function showChannelInfo(channelNumber, channelTitle) {
+                const infoText = channelNumber ? `Ch.${channelNumber} ${channelTitle}` : channelTitle;
+                channelInfo.innerText = infoText;
+                channelInfo.style.display = 'block';
+                setTimeout(() => {
+                    channelInfo.style.display = 'none';
+                }, 5000); // 5秒間表示
+            }
+
+            // エラーメッセージを表示
+            function showErrorMessage(channelNumber) {
+                const errorMessage = channelNumber 
+                    ? `Ch.${channelNumber}は現在休止しています。` 
+                    : `ご覧のチャンネルは現在休止しています。`;
+                statusMessage.innerText = errorMessage;
+                statusMessage.style.display = 'block';
+            }
         });
     </script>
 </body>

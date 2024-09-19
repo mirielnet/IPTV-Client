@@ -27,11 +27,13 @@ function parseM3U() {
       const logoMatch = line.match(/tvg-logo="([^"]+)"/);
       const groupMatch = line.match(/group-title="([^"]+)"/);
       const idMatch = line.match(/tvg-id="([^"]+)"/);
+      const channelNumberMatch = line.match(/\[Ch\.(\d+)\]/);
 
       const title = titleMatch ? titleMatch[1] : 'No Title';
       const logo = logoMatch ? logoMatch[1] : '';
       const group = groupMatch ? groupMatch[1] : 'Uncategorized';
       const tvgId = idMatch ? idMatch[1] : '';
+      const channelNumber = channelNumberMatch ? channelNumberMatch[1] : '';
 
       // URL comes after the #EXTINF line
       const url = arr[index + 1] && arr[index + 1].trim();
@@ -42,6 +44,7 @@ function parseM3U() {
           "tvg-id": tvgId,
           "tvg-logo": logo,
           "title": title,
+          "channel-number": channelNumber,  // Add channel number if exists
           "url": url
         });
       }
