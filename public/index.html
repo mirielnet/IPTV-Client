@@ -47,6 +47,46 @@
             padding: 10px;
             background-color: #ccc;
         }
+
+        /* スマホ用のレイアウト調整 */
+        @media screen and (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .player {
+                height: 50%;
+                flex: unset;
+            }
+            .channel-list {
+                height: 50%;
+                flex: unset;
+            }
+        }
+
+        /* 縦向きにした場合の調整 */
+        @media screen and (orientation: portrait) {
+            .player {
+                height: 50%;
+                flex: unset;
+            }
+            .channel-list {
+                height: 50%;
+                flex: unset;
+            }
+        }
+
+        /* 横向きにした場合の調整 */
+        @media screen and (orientation: landscape) {
+            .container {
+                flex-direction: row;
+            }
+            .player {
+                flex: 3;
+            }
+            .channel-list {
+                flex: 1;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
