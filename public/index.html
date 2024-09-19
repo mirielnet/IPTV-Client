@@ -212,7 +212,9 @@
 
             // チャンネル情報を表示
             function showChannelInfo(channelNumber, channelTitle) {
-                const infoText = channelNumber ? `Ch.${channelNumber} ${channelTitle}` : channelTitle;
+                // チャンネルタイトルから "[Ch.xxx]" 部分を削除
+                const cleanChannelTitle = channelTitle.replace(/\[Ch\.\d{3}\]/, '');
+                const infoText = channelNumber ? `Ch.${channelNumber} ${cleanChannelTitle}` : cleanChannelTitle;
                 channelInfo.innerText = infoText;
                 channelInfo.style.display = 'block';
                 setTimeout(() => {
