@@ -152,7 +152,13 @@
                         const logoImg = document.createElement('img');
                         logoImg.src = channel["tvg-logo"];
                         const channelName = document.createElement('span');
-                        channelName.innerText = channel["channel-number"] ? `[Ch.${channel["channel-number"]}] ${channel.title}` : channel.title;
+
+                        // チャンネル名から "[Ch.xxx]" 部分を削除する
+                        const cleanChannelTitle = channel["channel-number"]
+                            ? `[Ch.${channel["channel-number"]}] ${channel.title.replace(/\[Ch\.\d{3}\]/, '')}`
+                            : channel.title;
+
+                        channelName.innerText = cleanChannelTitle;
 
                         channelDiv.appendChild(logoImg);
                         channelDiv.appendChild(channelName);
