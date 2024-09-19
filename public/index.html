@@ -56,6 +56,7 @@
             color: white;
             font-size: 24px;
             text-align: center;
+            display: none;
         }
         .channel-info {
             position: absolute;
@@ -115,7 +116,7 @@
     <div class="container">
         <div class="player">
             <video id="videoPlayer" controls autoplay></video>
-            <div class="status-message" id="statusMessage">チャンネルを選択してください。</div>
+            <div class="status-message" id="statusMessage"></div>
             <div class="channel-info" id="channelInfo"></div>
         </div>
         <div class="channel-list" id="channelList"></div>
@@ -128,6 +129,8 @@
             const statusMessage = document.getElementById('statusMessage');
             const channelInfo = document.getElementById('channelInfo');
             let hls;
+            let checkTimeout;  // 映像チェックのタイマー
+            let isChannelLive = false;  // 映像が表示されているかのフラグ
 
             // サーバーからチャンネルデータを取得
             fetch('/channels')
@@ -160,6 +163,8 @@
                             if (hls) {
                                 hls.destroy();
                             }
+                            clearTimeout(checkTimeout);  // 前回のタイマーをクリア
+                            isChannelLive = false;
                             const videoSrc = channel.url;
                             const channelNumber = channel["channel-number"];
                             const channelTitle = channel.title;
@@ -175,6 +180,7 @@
                                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                                     videoPlayer.play();
                                     statusMessage.style.display = 'none';
+                                    checkForVideo(channelNumber);
                                 });
 
                                 hls.on(Hls.Events.ERROR, function(event, data) {
@@ -189,6 +195,7 @@
                                 videoPlayer.onerror = function() {
                                     showErrorMessage(channelNumber);
                                 };
+                                checkForVideo(channelNumber);
                             }
                         });
 
@@ -217,6 +224,33 @@
                 statusMessage.innerText = errorMessage;
                 statusMessage.style.display = 'block';
             }
+
+            // 映像が表示されているかをチェックする関数
+            function checkForVideo(channelNumber) {
+                checkTimeout = setTimeout(() => {
+                    if (!isChannelLive) {  // 映像が表示されていなければメッセージを表示
+                        const errorMessage = channelNumber 
+                            ? `Ch.${channelNumber}は現在休止しています。` 
+                            : `ご覧のチャンネルは現在休止しています。`;
+                        statusMessage.innerText = errorMessage;
+                        statusMessage.style.display = 'block';
+                    }
+                }, 10000);  // 10秒後にチェック
+            }
+
+            // 映像が表示されたときの処理
+            videoPlayer.addEventListener('play', function() {
+                if (videoPlayer.readyState >= 2) {
+                    isChannelLive = true;
+                    statusMessage.style.display = 'none';
+                }
+            });
+
+            // 映像が再生されている間はチェック
+            videoPlayer.addEventListener('playing', function() {
+                isChannelLive = true;
+                statusMessage.style.display = 'none';
+            });
         });
     </script>
 </body>
