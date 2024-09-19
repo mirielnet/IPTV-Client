@@ -249,7 +249,9 @@
             // 映像が再生されている間はチェック
             videoPlayer.addEventListener('playing', function() {
                 isChannelLive = true;
-                statusMessage.style.display = 'none';
+                setTimeout(function() {
+                    statusMessage.style.display = 'none';
+                }, 500); // 再生が始まってから0.5秒後にメッセージを消す
             });
         });
     </script>
